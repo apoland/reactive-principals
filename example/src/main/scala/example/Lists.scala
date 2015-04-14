@@ -52,7 +52,9 @@ object Lists {
           else b
         }
         
-        if (xs.isEmpty) 0
+        if (xs.isEmpty) throw new NoSuchElementException
+        
+        if (xs.length == 1) xs.head
         else greater(xs.head, max(xs.tail))
       
     }
