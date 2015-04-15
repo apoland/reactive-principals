@@ -1,2 +1,4 @@
 quickcheck/target
+quickcheck/project/project
+quickcheck/project/target
 quickcheck/.cache
