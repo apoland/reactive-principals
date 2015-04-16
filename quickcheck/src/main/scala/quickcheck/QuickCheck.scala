@@ -52,8 +52,7 @@ abstract class QuickCheckHeap extends Properties("Heap") with IntHeap {
      else isOrdered(h) 
      
   }
-  
-  
+ 
 
   //Finding a minimum of the melding of any two heaps should return 
   //a minimum of one or the other.
@@ -61,7 +60,22 @@ abstract class QuickCheckHeap extends Properties("Heap") with IntHeap {
     val m = findMin(meld(h1, h2))
     m == findMin(h1) || m == findMin(h2)
   }
-  
+ 
+  // Take two arbitrary heaps, meld together. 
+  // Then remove min from 1 and insert into 2, meld the results. 
+  // Compare two melds by comparing sequences of ranks.
+  property("meldMinMove") = forAll { (h1: H, h2: H) =>
+    def remMin(ts: H, as: List[Int]): List[Int] = {
+      if (isEmpty(ts)) as
+      else findMin(ts) :: remMin(deleteMin(ts), as)
+    }
+    val meld1 = meld(h1, h2)
+    val min1 = findMin(h1)
+    val meld2 = meld(deleteMin(h1), insert(min1, h2))
+    val xs1 = remMin(meld1, Nil)
+    val xs2 = remMin(meld2, Nil)
+    xs1 == xs2
+  }
 
 
 
@@ -73,9 +87,7 @@ abstract class QuickCheckHeap extends Properties("Heap") with IntHeap {
 
   implicit lazy val arbHeap: Arbitrary[H] = Arbitrary(genHeap)
   
-  //lazy val genIntList      = Gen.containerOf[List,Int](Gen.oneOf(1, 3, 5, 7))
-  
-  //implicit lazy val arbList: Arbitrary[List[Int]] = Arbitrary(genIntList)
+
 
 }
 
