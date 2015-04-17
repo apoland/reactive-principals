@@ -4,6 +4,8 @@ scalaVersion := "2.11.5"
 
 scalacOptions ++= Seq("-deprecation", "-feature")
 
+libraryDependencies <+= scalaVersion("org.scala-lang" % "scala-actors" % _)
+
 (fork in Test) := false
 
 projectDetailsMap := {
