@@ -8,14 +8,14 @@ object TweetLength {
   }
 
   //https://class.coursera.org/reactive-002/forum/thread?thread_id=203
-  def colorForRemainingCharsCount(remainingCharsCount: Signal[Int]): Signal[String] = {
-    remainingCharsCount() match {
-      case x if (x >= 15) => Signal { "green" }
-      case x if (x <= 14 && x >= 0) => Signal { "orange" }
-      case _ => Signal { "red" }
+  def colorForRemainingCharsCount(remainingCharsCount: Signal[Int]): Signal[String] = {   
+    Signal { 
+      remainingCharsCount() match {
+        case x if (x >= 15) => "green" 
+        case x if (x <= 14 && x >= 0) => "orange" 
+        case _ => "red"
+      }
     }
-    
-    
   }
 
   /** Computes the length of a tweet, given its text string.
