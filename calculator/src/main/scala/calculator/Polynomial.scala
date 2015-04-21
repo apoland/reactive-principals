@@ -13,7 +13,7 @@ object Polynomial {
     val sqrtDelta = math.sqrt(delta())
     val sol1 = ( -b() + sqrtDelta ) / ( 2 * a() )
     val sol2 = ( -b() - sqrtDelta ) / ( 2 * a() )
-    
+     
     if (delta() < 0) Signal(Set())
     else Signal(Set(sol1, sol2))
     
