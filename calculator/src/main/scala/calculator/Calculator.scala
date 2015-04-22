@@ -17,23 +17,16 @@ object Calculator {
   }
 
   def eval(expr: Expr, references: Map[String, Signal[Expr]]): Double = {
-    
     expr match {
       case Literal(l) => l
-      case Plus(a, b) =>  eval(a, references) + eval(b, references)
+      case Ref(name) => eval(getReferenceExpr(name, references), references - name)
+      case Plus(a, b) => eval(a, references) + eval(b, references)
       case Minus(a, b) => eval(a, references) - eval(b, references)
       case Times(a, b) => eval(a, references) * eval(b, references)
       case Divide(a, b) => eval(a, references) / eval(b, references)
-      case Ref(name) => {
-         val expr = references.getOrElse(name, Signal(Literal(Double.NaN)))
-         expr() match {
-           case Ref(name) => Double.NaN
-           case _ => eval(expr(), references)
-         }
-      }
     }
   }
-
+  
   /** Get the Expr for a referenced variables.
    *  If the variable is not known, returns a literal NaN.
    */
