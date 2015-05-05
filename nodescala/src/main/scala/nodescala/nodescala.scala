@@ -48,7 +48,8 @@ trait NodeScala {
    *  @return               a subscription that can stop the server and all its asynchronous operations *entirely*
    */
   def start(relativePath: String)(handler: Request => Response): Subscription = {
-    ???
+    val listener = createListener(relativePath)
+    listener.start()
   }
 
 }
