@@ -2,3 +2,9 @@ quickcheck/target
 quickcheck/project/project
 quickcheck/project/target
 quickcheck/.cache
+nodescala/target
+nodescala/.cache
+nodescala/project/project
+nodescala/project/target
+nodescala/target
+nodescala/submission
