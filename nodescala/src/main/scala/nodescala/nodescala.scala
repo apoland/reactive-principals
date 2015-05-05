@@ -30,7 +30,11 @@ trait NodeScala {
    *  @param body         the response to write back
    */
   private def respond(exchange: Exchange, token: CancellationToken, response: Response): Unit = {
-      ???
+    while (response.hasNext){
+      //TODO: check CancellationToken
+      exchange.write(response.next())
+    }
+
   }
 
   /** A server:
