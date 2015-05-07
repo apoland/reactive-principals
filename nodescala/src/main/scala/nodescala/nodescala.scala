@@ -30,10 +30,10 @@ trait NodeScala {
    *  @param body         the response to write back
    */
   private def respond(exchange: Exchange, token: CancellationToken, response: Response): Unit = {
-    while (response.hasNext){
-      //TODO: check CancellationToken
+    while (response.hasNext && token.nonCancelled) {
       exchange.write(response.next())
     }
+    exchange.close()
 
   }
 
@@ -49,7 +49,21 @@ trait NodeScala {
    */
   def start(relativePath: String)(handler: Request => Response): Subscription = {
     val listener = createListener(relativePath)
-    listener.start()
+    val cancelListener = listener.start()
+    val cancelServer = Future.run() { token =>
+      async {
+        while (!token.isCancelled) {
+          val (request, xchg) = await { listener.nextRequest() }
+          async {
+            respond(xchg, token, handler(request))
+          }
+        }
+
+        cancelListener.unsubscribe()
+      }
+    }
+
+    Subscription(cancelListener, cancelServer)
   }
 
 }

@@ -31,7 +31,17 @@ class NodeScalaSuite extends FunSuite {
     }
   }
 
-  
+  test("completed after time t") {
+
+    val delay = Future.delay(1 seconds)
+    try {
+      Await.result(delay, 10 seconds)
+      assert(true)
+    } catch {
+      case t: TimeoutException => { assert(false) }
+    }
+
+  }
   
   class DummyExchange(val request: Request) extends Exchange {
     @volatile var response = ""
