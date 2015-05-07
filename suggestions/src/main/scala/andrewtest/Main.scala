@@ -16,6 +16,17 @@ object Main {
 
     s.unsubscribe()
 
+    val xs: Observable[Int] = Observable.from(List(3,2,1))
+    val yss: Observable[Observable[Int]] =
+      xs.map(x => Observable.interval(x seconds).map(_=>x).take(2))
+    val zs: Observable[Int] = yss.flatten
+
+    val t = zs.subscribe(println(_))
+
+    readLine()
+
+    t.unsubscribe()
+
   }
 
 
