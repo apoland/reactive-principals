@@ -7,3 +7,4 @@ Pattern matching
  case t => matches a value?
  case _ => matches exceptions, etc
  
+https://twitter.github.io/scala_school/index.html
