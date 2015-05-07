@@ -1,0 +1,9 @@
+Talk about "f" in FutureCompanionOps.  Is that something like "this"?
+implicit class
+fold uses an accumulator
+flatmap is one to one mapping + flatten
+
+Pattern matching
+ case t => matches a value?
+ case _ => matches exceptions, etc
+ 

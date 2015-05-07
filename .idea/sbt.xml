@@ -7,6 +7,11 @@
         <option name="jdk" value="1.8" />
         <option name="sbtVersion" value="0.13.7" />
       </SbtProjectSettings>
+      <SbtProjectSettings>
+        <option name="externalProjectPath" value="$PROJECT_DIR$/suggestions" />
+        <option name="jdk" value="1.8" />
+        <option name="sbtVersion" value="0.13.7" />
+      </SbtProjectSettings>
     </option>
   </component>
 </project>
