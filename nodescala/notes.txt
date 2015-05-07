@@ -7,4 +7,6 @@ Pattern matching
  case t => matches a value?
  case _ => matches exceptions, etc
  
+Real world use of Future/Observable/Subscriptions
+ 
 https://twitter.github.io/scala_school/index.html
