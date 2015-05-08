@@ -52,23 +52,21 @@ trait SwingApi {
       * @param field the text field
       * @return an observable with a stream of text field updates
       */
-    def textValues: Observable[String] = {
+    def textValues: Observable[String] = Observable.create { observer =>
 
-      Observable[String]((observer: Observer[String]) => {
-        field subscribe {
-          case ValueChanged(tf) => observer.onNext(tf.text)
+      field subscribe {
+        case ValueChanged(tf) => observer.onNext(tf.text)
+        case _ => ()
+      }
+
+      //A subscription invokes its partial function when its unsubscribe is called
+      Subscription {
+        field unsubscribe {
+          case ValueChanged(tf) => observer.onCompleted
           case _ => ()
         }
+      }
 
-        //Subscription envokes the partial function when its unsubscribe is called
-        Subscription {
-          field unsubscribe {
-            case ValueChanged(tf) => observer.onCompleted
-            case _ => ()
-          }
-        }
-
-      })
     }
 
   }
@@ -81,6 +79,7 @@ trait SwingApi {
      * @return an observable with a stream of buttons that have been clicked
      */
     def clicks: Observable[Button] = Observable.create { observer =>
+
       button subscribe {
         case ButtonClicked(b) => observer.onNext(b)
         case _ => ()
@@ -94,6 +93,7 @@ trait SwingApi {
       }
 
     }
+
   }
 
 }

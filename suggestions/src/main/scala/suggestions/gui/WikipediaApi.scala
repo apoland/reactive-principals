@@ -9,7 +9,7 @@ import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{ Try, Success, Failure }
 import rx.subscriptions.CompositeSubscription
-import rx.lang.scala.Observable
+import rx.lang.scala.{Subscription, Observable}
 import observablex._
 import search._
 
@@ -37,7 +37,22 @@ trait WikipediaApi {
      *
      * E.g. `"erik", "erik meijer", "martin` should become `"erik", "erik_meijer", "martin"`
      */
-    def sanitized: Observable[String] = ???
+    def sanitized: Observable[String] = Observable.create { observer =>
+
+      field subscribe {
+        case ValueChanged(tf) => observer.onNext(tf.text)
+        case _ => ()
+      }
+
+      //A subscription invokes its partial function when its unsubscribe is called
+      Subscription {
+        field unsubscribe {
+          case ValueChanged(tf) => observer.onCompleted
+          case _ => ()
+        }
+      }
+
+    }
 
   }
 
