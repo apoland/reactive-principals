@@ -37,21 +37,8 @@ trait WikipediaApi {
      *
      * E.g. `"erik", "erik meijer", "martin` should become `"erik", "erik_meijer", "martin"`
      */
-    def sanitized: Observable[String] = Observable.create { observer =>
-
-      field subscribe {
-        case ValueChanged(tf) => observer.onNext(tf.text)
-        case _ => ()
-      }
-
-      //A subscription invokes its partial function when its unsubscribe is called
-      Subscription {
-        field unsubscribe {
-          case ValueChanged(tf) => observer.onCompleted
-          case _ => ()
-        }
-      }
-
+    def sanitized: Observable[String] = obs.map {
+      str => str.replace(" ", "_")
     }
 
   }
@@ -63,7 +50,7 @@ trait WikipediaApi {
      *
      * E.g. `1, 2, 3, !Exception!` should become `Success(1), Success(2), Success(3), Failure(Exception), !TerminateStream!`
      */
-    def recovered: Observable[Try[T]] = ???
+    def recovered: Observable[Try[T]] = obs.map { t => Try(t) }
 
     /** Emits the events from the `obs` observable, until `totalSec` seconds have elapsed.
      *
@@ -71,7 +58,9 @@ trait WikipediaApi {
      *
      * Note: uses the existing combinators on observables.
      */
-    def timedOut(totalSec: Long): Observable[T] = ???
+
+    //TODO
+    def timedOut(totalSec: Long): Observable[T] = obs.timeout(totalSec seconds)
 
     /** Given a stream of events `obs` and a method `requestMethod` to map a request `T` into
      * a stream of responses `S`, returns a stream of all the responses wrapped into a `Try`.
@@ -98,7 +87,10 @@ trait WikipediaApi {
      *
      * Observable(Success(1), Succeess(1), Succeess(1), Succeess(2), Succeess(2), Succeess(2), Succeess(3), Succeess(3), Succeess(3))
      */
-    def concatRecovered[S](requestMethod: T => Observable[S]): Observable[Try[S]] = ???
+    def concatRecovered[S](requestMethod: T => Observable[S]): Observable[Try[S]] =
+       obs.flatMap {
+         x => requestMethod(x) recovered
+       }
 
   }
 
