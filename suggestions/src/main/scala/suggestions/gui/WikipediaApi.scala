@@ -52,7 +52,12 @@ trait WikipediaApi {
      *
      * E.g. `1, 2, 3, !Exception!` should become `Success(1), Success(2), Success(3), Failure(Exception), !TerminateStream!`
      */
-    def recovered: Observable[Try[T]] = obs map { v => Success(v) } onErrorReturn { e => Failure(e) }
+    def recovered: Observable[Try[T]] =
+      obs.map {
+        x => Success(x)
+      } onErrorReturn {
+        e => Failure(e)
+      }
 
 
     /** Emits the events from the `obs` observable, until `totalSec` seconds have elapsed.
