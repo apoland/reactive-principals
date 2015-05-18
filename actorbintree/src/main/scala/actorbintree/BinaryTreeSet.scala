@@ -66,14 +66,30 @@ class BinaryTreeSet extends Actor {
 
   // optional
   /** Accepts `Operation` and `GC` messages. */
-  val normal: Receive = { case _ => ??? }
+  val normal: Receive = {
+    case msg: Insert => {
+      //Pass the message to my root node
+      println("set: insert")
+      sender ! OperationFinished(msg.id)
+    }
+    case msg: Contains => {
+      println("set: contains")
+      sender ! ContainsResult(msg.id, false)
+    }
+    case msg: Remove => {
+      println("set: remove")
+      sender ! OperationFinished(msg.id)
+    }
+  }
 
   // optional
   /** Handles messages while garbage collection is performed.
     * `newRoot` is the root of the new binary tree where we want to copy
     * all non-removed elements into.
     */
-  def garbageCollecting(newRoot: ActorRef): Receive = ???
+  def garbageCollecting(newRoot: ActorRef): Receive = {
+    case _ => println("garbageCollecting")
+  }
 
 }
 
@@ -101,13 +117,29 @@ class BinaryTreeNode(val elem: Int, initiallyRemoved: Boolean) extends Actor {
 
   // optional
   /** Handles `Operation` messages and `CopyTo` requests. */
-  val normal: Receive = { case _ => ??? }
+  val normal: Receive = {
+    case msg: Insert => {
+      //Pass message to either left or right children, or create one if it does not exist
+      println("node: insert")
+      sender ! OperationFinished(msg.id)
+    }
+    case msg: Contains => {
+      println("node: contains")
+      sender ! ContainsResult(msg.id, false)
+    }
+    case msg: Remove => {
+      println("node: remove")
+      sender ! OperationFinished(msg.id)
+    }
+  }
 
   // optional
   /** `expected` is the set of ActorRefs whose replies we are waiting for,
     * `insertConfirmed` tracks whether the copy of this node to the new tree has been confirmed.
     */
-  def copying(expected: Set[ActorRef], insertConfirmed: Boolean): Receive = ???
+  def copying(expected: Set[ActorRef], insertConfirmed: Boolean): Receive = {
+    case _ => println("copying")
+  }
 
 
 }
