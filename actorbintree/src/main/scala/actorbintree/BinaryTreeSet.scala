@@ -69,16 +69,16 @@ class BinaryTreeSet extends Actor {
   val normal: Receive = {
     case msg: Insert => {
       //Pass the message to my root node
-      println("set: insert")
-      sender ! OperationFinished(msg.id)
+      //println("set: insert "+msg.id)
+      root ! msg
     }
     case msg: Contains => {
-      println("set: contains")
-      sender ! ContainsResult(msg.id, false)
+      //println("set: contains "+msg.id)
+      root ! msg
     }
     case msg: Remove => {
-      println("set: remove")
-      sender ! OperationFinished(msg.id)
+      //println("set: remove "+msg.id)
+      root ! msg
     }
   }
 
@@ -120,16 +120,16 @@ class BinaryTreeNode(val elem: Int, initiallyRemoved: Boolean) extends Actor {
   val normal: Receive = {
     case msg: Insert => {
       //Pass message to either left or right children, or create one if it does not exist
-      println("node: insert")
-      sender ! OperationFinished(msg.id)
+      //println("node: insert "+msg.id)
+      msg.requester ! OperationFinished(msg.id)
     }
     case msg: Contains => {
-      println("node: contains")
-      sender ! ContainsResult(msg.id, false)
+      //println("node: contains "+msg.id)
+      msg.requester ! ContainsResult(msg.id, false)
     }
     case msg: Remove => {
-      println("node: remove")
-      sender ! OperationFinished(msg.id)
+      //println("node: remove "+msg.id)
+      msg.requester ! OperationFinished(msg.id)
     }
   }
 
