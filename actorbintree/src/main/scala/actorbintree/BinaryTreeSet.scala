@@ -5,6 +5,7 @@ package actorbintree
 
 import akka.actor._
 import scala.collection.immutable.Queue
+import scala.util.{Failure, Success}
 
 object BinaryTreeSet {
 
@@ -67,19 +68,7 @@ class BinaryTreeSet extends Actor {
   // optional
   /** Accepts `Operation` and `GC` messages. */
   val normal: Receive = {
-    case msg: Insert => {
-      //Pass the message to my root node
-      //println("set: insert "+msg.id)
-      root ! msg
-    }
-    case msg: Contains => {
-      //println("set: contains "+msg.id)
-      root ! msg
-    }
-    case msg: Remove => {
-      //println("set: remove "+msg.id)
-      root ! msg
-    }
+    case msg: Operation => root ! msg
   }
 
   // optional
@@ -119,17 +108,25 @@ class BinaryTreeNode(val elem: Int, initiallyRemoved: Boolean) extends Actor {
   /** Handles `Operation` messages and `CopyTo` requests. */
   val normal: Receive = {
     case msg: Insert => {
-      //Pass message to either left or right children, or create one if it does not exist
-      //println("node: insert "+msg.id)
-      msg.requester ! OperationFinished(msg.id)
+      if (msg.elem == elem) {
+        removed = false
+        msg.requester ! OperationFinished(msg.id)
+      }
+      if (msg.elem < elem) insert(Left, msg)
+      if (msg.elem > elem) insert(Right, msg)
     }
     case msg: Contains => {
-      //println("node: contains "+msg.id)
-      msg.requester ! ContainsResult(msg.id, false)
+      if (msg.elem == elem) msg.requester ! ContainsResult(msg.id, !removed)
+      if (msg.elem < elem) contains(Left, msg)
+      if (msg.elem > elem) contains(Right, msg)
     }
     case msg: Remove => {
-      //println("node: remove "+msg.id)
-      msg.requester ! OperationFinished(msg.id)
+      if (msg.elem == elem) {
+        removed = true
+        msg.requester ! OperationFinished(msg.id)
+      }
+      if (msg.elem < elem) remove(Left, msg)
+      if (msg.elem > elem) remove(Right, msg)
     }
   }
 
@@ -139,6 +136,30 @@ class BinaryTreeNode(val elem: Int, initiallyRemoved: Boolean) extends Actor {
     */
   def copying(expected: Set[ActorRef], insertConfirmed: Boolean): Receive = {
     case _ => println("copying")
+  }
+
+  def insert(position: Position, msg: Insert): Unit = {
+    subtrees.get(position) match {
+      case Some(a) => a ! msg
+      case None => {
+        subtrees += (position -> context.actorOf(BinaryTreeNode.props(msg.elem, initiallyRemoved = false)))
+        msg.requester ! OperationFinished(msg.id)
+      }
+    }
+  }
+
+  def contains(position: Position, msg: Contains): Unit = {
+    subtrees.get(position) match {
+      case Some(a) => a ! msg
+      case None =>  msg.requester ! ContainsResult(msg.id, false)
+    }
+  }
+
+  def remove(position: Position, msg: Remove): Unit = {
+    subtrees.get(position) match {
+      case Some(a) => a ! msg
+      case None =>  msg.requester ! OperationFinished(msg.id)
+    }
   }
 
 
