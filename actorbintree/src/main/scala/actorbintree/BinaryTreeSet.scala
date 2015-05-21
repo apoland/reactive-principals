@@ -69,6 +69,14 @@ class BinaryTreeSet extends Actor {
   /** Accepts `Operation` and `GC` messages. */
   val normal: Receive = {
     case msg: Operation => root ! msg
+    case GC => {
+      //println("****GC****")
+      // ignore messages while GCing
+      // build a new root node
+      // send QueryValue message to root node
+      // use Value replies to populate new root node
+      // swap new node to be new root
+    }
   }
 
   // optional
@@ -127,9 +135,6 @@ class BinaryTreeNode(val elem: Int, initiallyRemoved: Boolean) extends Actor {
       }
       if (msg.elem < elem) remove(Left, msg)
       if (msg.elem > elem) remove(Right, msg)
-    }
-    case _ => {
-      println("****GC****")
     }
   }
 
