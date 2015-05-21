@@ -128,6 +128,9 @@ class BinaryTreeNode(val elem: Int, initiallyRemoved: Boolean) extends Actor {
       if (msg.elem < elem) remove(Left, msg)
       if (msg.elem > elem) remove(Right, msg)
     }
+    case _ => {
+      println("****GC****")
+    }
   }
 
   // optional
