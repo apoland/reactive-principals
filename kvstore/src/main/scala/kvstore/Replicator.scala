@@ -36,10 +36,10 @@ class Replicator(val replica: ActorRef) extends Actor {
     ret
   }
 
-  
-  /* TODO Behavior for the Replicator. */
   def receive: Receive = {
-    case _ =>
+    case Replicate(key, valueOption, seq)=>
+      replica ! Snapshot(key, valueOption, seq)
+    // secondary should continue to send until replica replies: SnapshotAck("k1", 0L)
   }
 
 }

@@ -46,26 +46,48 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor {
   // the current set of replicators
   var replicators = Set.empty[ActorRef]
 
+  var expectedSeq: Long = 0
+
+  var persistence = context.actorOf(persistenceProps, "persistence")
+
   def receive = {
     case JoinedPrimary   => context.become(leader)
     case JoinedSecondary => context.become(replica)
   }
 
   val leader: Receive = {
-    case msg:
-      Insert => kv += (msg.key -> msg.value)
-      sender ! OperationAck(msg.id)
+    case Insert(key, value, id) =>
+      kv += (key -> value)
+      sender ! OperationAck(id)
 
-    case msg: Remove =>
-      kv -= msg.key
-      sender ! OperationAck(msg.id)
+    case Remove(key, id) =>
+      kv -= key
+      sender ! OperationAck(id)
       
-    case msg: Get =>
-      sender ! GetResult(msg.key, kv.get(msg.key), msg.id)
+    case Get(key, id) =>
+      sender ! GetResult(key, kv.get(key), id)
+
   }
 
   val replica: Receive = {
-    case _ =>
+    case Snapshot(key, valueOption: Option[String], seq) if seq <= expectedSeq =>
+      if (seq == expectedSeq) {
+        expectedSeq += 1
+        valueOption match {
+          case value: Some[String] => kv += (key -> value.get)
+          case None => kv -= key
+        }
+      }
+      persistence ! Persist(key, valueOption, seq)
+      // After getting  Persisted reply:
+        sender ! SnapshotAck(key, seq)
+
+    case Get(key, id) =>
+      sender ! GetResult(key, kv.get(key), id)
+
+    case Persisted(key, seq) =>
+      println(s"Received Persisted($key, $seq)")
+      sender ! SnapshotAck(key, seq)
   }
 
   //Join the cluster
