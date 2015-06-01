@@ -7,6 +7,7 @@ import akka.actor.SupervisorStrategy.Restart
 import scala.annotation.tailrec
 import akka.pattern.{ ask, pipe }
 import akka.actor.Terminated
+import scala.concurrent.Await
 import scala.concurrent.duration._
 import akka.actor.PoisonPill
 import akka.actor.OneForOneStrategy
@@ -50,6 +51,7 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor {
 
   var persistence = context.actorOf(persistenceProps, "persistence")
 
+
   def receive = {
     case JoinedPrimary   => context.become(leader)
     case JoinedSecondary => context.become(replica)
@@ -78,9 +80,14 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor {
           case None => kv -= key
         }
       }
-      persistence ! Persist(key, valueOption, seq)
-      // After getting  Persisted reply:
-        sender ! SnapshotAck(key, seq)
+      
+      implicit val timeout = Timeout(5.seconds)
+      val future = persistence ? Persist(key, valueOption, seq)
+      Await.result(future, timeout.duration) match {
+        case Persisted(key, seq) =>
+          sender ! SnapshotAck(key, seq)
+      }
+
 
     case Get(key, id) =>
       sender ! GetResult(key, kv.get(key), id)
