@@ -3,6 +3,10 @@ package kvstore
 import akka.actor.Props
 import akka.actor.Actor
 import akka.actor.ActorRef
+import akka.util.Timeout
+import akka.pattern.{ ask, pipe }
+import kvstore.Persistence.{Persisted, Persist}
+import scala.concurrent.Await
 import scala.concurrent.duration._
 
 object Replicator {
@@ -37,9 +41,20 @@ class Replicator(val replica: ActorRef) extends Actor {
   }
 
   def receive: Receive = {
-    case Replicate(key, valueOption, seq)=>
-      replica ! Snapshot(key, valueOption, seq)
+    case Replicate(key, valueOption, id) =>
     // secondary should continue to send until replica replies: SnapshotAck("k1", 0L)
+    implicit val timeout = Timeout(100.milliseconds)
+      var success = false
+      while (!success) {
+        val future = replica ? Snapshot(key, valueOption, id)
+        try {
+           Await.result(future, timeout.duration).asInstanceOf[SnapshotAck]
+           success = true
+        } catch {
+          case e: Exception =>
+        }
+
+      }
   }
 
 }

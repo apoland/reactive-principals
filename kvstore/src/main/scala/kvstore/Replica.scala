@@ -7,12 +7,13 @@ import akka.actor.SupervisorStrategy.Restart
 import scala.annotation.tailrec
 import akka.pattern.{ ask, pipe }
 import akka.actor.Terminated
-import scala.concurrent.Await
+import scala.concurrent.{Future, Await}
 import scala.concurrent.duration._
 import akka.actor.PoisonPill
 import akka.actor.OneForOneStrategy
 import akka.actor.SupervisorStrategy
 import akka.util.Timeout
+
 
 object Replica {
   sealed trait Operation {
@@ -57,6 +58,7 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor {
     case JoinedSecondary => context.become(replica)
   }
 
+
   val leader: Receive = {
     case Insert(key, value, id) =>
       kv += (key -> value)
@@ -80,22 +82,30 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor {
           case None => kv -= key
         }
       }
-      
-      implicit val timeout = Timeout(5.seconds)
-      val future = persistence ? Persist(key, valueOption, seq)
-      Await.result(future, timeout.duration) match {
-        case Persisted(key, seq) =>
-          sender ! SnapshotAck(key, seq)
+
+      implicit val timeout = Timeout(100.milliseconds)
+      var success = false
+      while (!success) {
+        val future = persistence ? Persist(key, valueOption, seq)
+        try {
+          val persisted = Await.result(future, timeout.duration).asInstanceOf[Persisted]
+          println(s"SnapshotAck: $persisted")
+          sender ! SnapshotAck(persisted.key, persisted.id)
+          success = true
+        } catch {
+          case e: Exception =>
+        }
+
       }
 
 
     case Get(key, id) =>
       sender ! GetResult(key, kv.get(key), id)
 
-    case Persisted(key, seq) =>
-      println(s"Received Persisted($key, $seq)")
-      sender ! SnapshotAck(key, seq)
+
   }
+
+
 
   //Join the cluster
   arbiter ! Join
